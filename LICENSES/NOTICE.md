@@ -52,18 +52,11 @@ download, and a redistributables library is not "your program".
 We have bundled them anyway, as a deliberate decision taken with the clause above
 in view, because a LAN party is the case where a client cannot be assumed to have
 an internet connection at install time. The files are carried byte-for-byte under
-their original filenames — nothing here repacks, extracts, patches or renames them,
-and the license text travels with them — but that is a mitigation, not a
+their original filenames. Nothing here repacks, extracts, patches or renames them,
+and the license text travels with them. That is a mitigation, not a
 permission.
 
 ### If you would rather we did not
 
 If you are at Microsoft, or anyone else with standing here, open an issue and we
-will switch this package to `Source.Mode: none` without argument. The packaging
-module already supports it and `LANCommander.Redistributables.dgVoodoo2` is a
-working example: the `.LCX` then ships scripts only, and the runtime is fetched
-from Microsoft rather than from us.
-
-The registry detection, architecture option, exit-code handling and update
-workflow in this repository are all ours and are unaffected by that change. Only
-where the bytes come from would differ.
+will switch the distribution method promptly.
