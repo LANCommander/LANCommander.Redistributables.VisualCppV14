@@ -1,0 +1,102 @@
+# Identity ---------------------------------------------------------------------
+#
+# Id and every GUID under Scripts are generated ONCE and must never change.
+#
+# RedistributableImporter matches an incoming record with
+#   r.Id == record.Id || r.Name == record.Name
+# so a regenerated GUID makes every published release import as a brand new
+# redistributable instead of updating the existing one. Servers would accumulate a
+# duplicate per release, each with its own per-game option values.
+
+Id: 170e1b87-7a3d-496e-bd5d-0dd85995ae0a
+Name: Visual C++ v14 Redistributable (2015-2022)
+
+# Name carries the years because that is what an administrator searching for a
+# missing dependency will type, and what Programs and Features shows. The
+# repository is the shorter v14 form, and RepositoryName is what release asset
+# filenames are built from -- without it, Name would be used verbatim and the
+# spaces and parentheses would end up in the filename.
+RepositoryName: VisualCppV14
+
+Description: >
+  The Microsoft Visual C++ runtime libraries, v14. One package covers every v14
+  toolset -- anything built with Visual Studio 2015 through 2022, and in practice
+  2026 as well, since the runtime stays binary compatible back to 2015. This is the
+  single most common missing dependency for games of that era, usually surfacing as
+  "MSVCP140.dll was not found" or "VCRUNTIME140.dll is missing" on launch.
+
+Notes: >
+  Microsoft Visual C++ Redistributable is (c) Microsoft Corporation and is licensed
+  under the Microsoft Software License Terms for the Visual C++ v14 Redistributable
+  and Runtime. Those terms do not grant redistribution rights. Read
+  LICENSES/NOTICE.md before relying on this package -- it states plainly what is
+  being done here and why.
+
+# The four-part file version read from the installer's PE resource. Microsoft
+# publishes no version number anywhere; their documentation tells you to download
+# the installer and read File version off its properties, which is what source.ps1
+# does. Carried verbatim -- only the git tag is sanitised.
+LastKnownVersion: "14.51.36247.0"
+
+# Payload ----------------------------------------------------------------------
+Source:
+  Mode: download
+
+  # Bespoke. None of Resolve-UpstreamVersion's resolvers fit: there is no release
+  # feed and no version string on any page to regex out. See source.ps1.
+  Resolver: custom
+
+  Url: https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
+
+  # Microsoft's documented permalinks, always pointing at the latest v14 build.
+  # These replaced the older aka.ms/vs/17/release/... form.
+  #
+  # ARM64 is deliberately absent. Microsoft's x64 package already contains the
+  # ARM64 binaries, so a separate arm64 installer would add 14 MB to every package
+  # for nothing.
+  #
+  # These four keys are the whole per-version delta. A sibling repository for
+  # another VC++ release changes them and nothing else in this file.
+  Downloads:
+    x86: https://aka.ms/vc14/vc_redist.x86.exe
+    x64: https://aka.ms/vc14/vc_redist.x64.exe
+
+  # Which installer's PE version stamps the package. Microsoft ships both
+  # architectures at the same version; source.ps1 warns if they ever diverge.
+  VersionFrom: x64
+
+  # The HKLM\SOFTWARE\Microsoft\VisualStudio\<this>\VC\Runtimes key DetectInstall
+  # probes. It is 14.0 for every v14 release -- 2015, 2017, 2019 and 2022 all share
+  # it, because the runtime is binary compatible across them.
+  RuntimesKey: "14.0"
+
+# Configuration ----------------------------------------------------------------
+#
+# A runtime installer has no configuration file. The one option this package
+# exposes -- which architecture to install -- is not upstream's setting at all, it
+# is ours, so there is nothing for a parser to read. Schema.Overlay.yml authors it
+# outright instead.
+ConfigPaths: []
+
+# Scripts ----------------------------------------------------------------------
+#
+# Platforms is set on every client-side script. The Visual C++ runtime is a Windows
+# component and an unset Platforms means "runs everywhere", which would let these
+# run on a Linux client and fail. Package is deliberately left unset: it runs on the
+# server, which may well be Linux.
+Scripts:
+  DetectInstall:
+    Id: 7fc2abd2-32ea-48c4-bb56-8de0b00c55c8
+    Platforms: Windows
+    Description: Reads the installed runtime version out of the registry for each selected architecture.
+  Install:
+    Id: 5721c361-4d4f-4e7f-aef4-9ab2b5b0a6c1
+    Platforms: Windows
+    Description: Runs the Microsoft installer silently for each selected architecture.
+  Uninstall:
+    Id: 708cdf42-6510-4148-8dc2-a0a381214ef3
+    Platforms: Windows
+    Description: Deliberately does nothing; the runtime is shared machine-wide.
+  Package:
+    Id: 59ba8ebc-8089-41f1-bd6c-1bb98c2bd553
+    Description: Server-side updater that tracks this repository's releases.
