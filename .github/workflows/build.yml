@@ -40,4 +40,10 @@ jobs:
     with:
       # Validate on pull requests without publishing anything.
       release: ${{ github.event_name != 'pull_request' }}
+      # Windows, not the default ubuntu-latest. source.ps1 reads the package version
+      # out of the installer's PE version resource, and .NET's Unix implementation of
+      # FileVersionInfo does not parse those -- it returns an empty string for a
+      # perfectly good Windows executable. Reading a Windows PE is Windows tooling,
+      # which is exactly what this input is for.
+      runs_on: windows-latest
     secrets: inherit

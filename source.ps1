@@ -48,10 +48,15 @@ if (-not $downloads.Contains($versionFrom)) {
 .SYNOPSIS
     Reads the four-part file version out of a Windows PE image.
 .DESCRIPTION
-    FileVersionInfo parses the PE version resource directly rather than asking the
-    OS, so this works on the Linux build runner as well as on Windows. An empty
-    result means the download was not a PE at all -- almost certainly an HTML error
-    page saved under a .exe name, which is what a broken aka.ms redirect looks like.
+    This is why both workflows pin runs_on to windows-latest. .NET's Unix
+    implementation of FileVersionInfo does not read PE version resources -- it
+    returns an empty string for a perfectly valid Windows executable rather than
+    failing -- so on Linux every version would silently come back blank.
+
+    An empty result therefore means one of two things: the wrong runner, or a
+    download that was not a PE at all. A broken aka.ms redirect serving an HTML
+    error page under a .exe name looks exactly like the latter, so the size is
+    reported to tell them apart.
 #>
 function Get-InstallerVersion {
     param([Parameter(Mandatory)][string] $Path)
@@ -60,7 +65,10 @@ function Get-InstallerVersion {
 
     if ([string]::IsNullOrWhiteSpace($version)) {
         $size = (Get-Item -LiteralPath $Path).Length
-        throw "No PE version resource in '$Path' ($size bytes); the download did not return an installer"
+
+        throw "Could not read a PE version from '$Path' ($size bytes). " +
+              "Run this on Windows -- FileVersionInfo returns nothing for a PE on Linux. " +
+              "If you already are, the download was not an installer."
     }
 
     return $version.Trim()
