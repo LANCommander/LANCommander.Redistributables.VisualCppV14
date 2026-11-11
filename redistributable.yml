@@ -36,7 +36,7 @@ Notes: >
 # publishes no version number anywhere; their documentation tells you to download
 # the installer and read File version off its properties, which is what source.ps1
 # does. Carried verbatim -- only the git tag is sanitised.
-LastKnownVersion: "14.51.36247.0"
+LastKnownVersion: "14.52.37029.0"
 
 # Payload ----------------------------------------------------------------------
 Source:
